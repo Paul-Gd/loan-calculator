@@ -1,0 +1,42 @@
+name: Update IRCC data
+on:
+  schedule:
+    - cron: '0 10 * * 1-5' # At 10:00 on every day-of-week from Monday through Friday.
+  workflow_dispatch:
+jobs:
+  Download-Latest-Data-And-Push-To-Branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+          submodules: 'true'
+          fetch-depth: 0
+      - name: Update submodule
+        working-directory: ./historical-data
+        run: git switch historical-data && git pull # submodule has HEAD in detached state. We want the latest data from the branch
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip' # caching pip dependencies
+      - name: Installing pip packages
+        working-directory: ./scraper
+        run: pip install -r requirements.txt
+      - name: Scrape data
+        working-directory: ./scraper
+        run: python ircc.py -f ../historical-data/ircc.json
+      - name: Push changes
+        working-directory: ./historical-data
+        run: | 
+          if [ -z "$(git status --porcelain)" ]; then 
+            echo "No changes detected. Skip pushing a new commit!"
+          else 
+            echo "Pushing the new changes"
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git add .
+            git commit -m "Update ircc data"
+            git push origin historical-data
+          fi
+
