@@ -34,4 +34,4 @@ if __name__ == '__main__':
 
     ircc_data=scrape_ircc()
     with open(args.file,"w") as f:
-        json.dump([{"date":daily_ircc.date.isoformat(),"ircc_rate":daily_ircc.ircc_rate} for daily_ircc in ircc_data],f)
+        json.dump([{"date":daily_ircc.date.isoformat(),"rate":daily_ircc.ircc_rate} for daily_ircc in ircc_data],f)
