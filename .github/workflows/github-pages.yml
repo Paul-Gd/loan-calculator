@@ -31,6 +31,8 @@ jobs:
         run: npm install
       - name: Build static website
         working-directory: ./calculator
+        env:
+          PUBLIC_PATH: /loan-calculator/ # Github pages serves the content under `/loan-calculator/` path. Example: https://paul-gd.github.io/loan-calculator/
         run: | 
           npm run build
           npm run export
