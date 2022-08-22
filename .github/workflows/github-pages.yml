@@ -1,0 +1,51 @@
+name: Build github pages
+on:
+  push: # Trigger a new deploy when master branch or the historical-data branch is updated
+    branches:
+      - master
+      - historical-data
+  workflow_dispatch:
+jobs:
+  Build-Github-Pages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+          submodules: 'true'
+          fetch-depth: 0
+      - name: Update historical-data submodule
+        working-directory: ./historical-data
+        run: git switch historical-data && git pull # submodule has HEAD in detached state. We want the latest data from the branch
+      - name: Update github-pages submodule
+        working-directory: ./github-pages
+        run: git switch github-pages && git pull # submodule has HEAD in detached state. We want the latest data from the branch
+      - name: Setup nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm' # caching npm dependencies
+          cache-dependency-path: calculator/package-lock.json
+      - name: Installing npm dependencies
+        working-directory: ./calculator
+        run: npm install
+      - name: Build static website
+        working-directory: ./calculator
+        run: | 
+          npm run build
+          npm run export
+      - name: Copy to github-pages branch and push changes
+        working-directory: ./github-pages
+        run: | 
+          cp -r ../calculator/build/public/. ./
+          if [ -z "$(git status --porcelain)" ]; then 
+            echo "No changes detected. Skip pushing a new commit!"
+          else 
+            echo "Pushing the new github page"
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git add .
+            git commit -m "Build for master $(cd .. && git rev-parse --short HEAD) historical-data $(cd ../historical-data && git rev-parse --short HEAD)"
+            git push origin github-pages
+          fi
+
