@@ -6,7 +6,8 @@ import "./App.css";
 
 const App = () => (
   <Switch>
-    <Route exact={true} path="/" component={Home} />
+    <Route exact={true} path={`${process.env.PUBLIC_PATH}`} component={Home} />
+    <Route component={() => <div>Route not found!</div>} />
   </Switch>
 );
 
