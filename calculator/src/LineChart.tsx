@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 
 import {
@@ -15,7 +15,6 @@ import {
   ChartOptions,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
-import zoomPlugin from "chartjs-plugin-zoom";
 import { IrccEntry } from "./types";
 
 export interface Props {
@@ -70,11 +69,21 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend,
-  zoomPlugin
+  Legend
 );
 
 export const LineChart = (props: Props) => {
+  const [zoomLoaded, setZoomLoaded] = useState(false);
+  useEffect(() => {
+    if (process.env.BUILD_TARGET === "client") {
+      // chartjs-plugin-zoom uses handlebarsjs. At import, handlebarsjs expects window to be present but
+      // on server, there is no window so the ssr crashes
+      import("chartjs-plugin-zoom").then((zoomPlugin) => {
+        ChartJS.register(zoomPlugin.default);
+        setZoomLoaded(true);
+      });
+    }
+  }, [setZoomLoaded]);
   const labels = props.irccData.map((p) => p.date);
   const data = {
     labels,
@@ -89,7 +98,7 @@ export const LineChart = (props: Props) => {
   };
   return (
     <div>
-      <Line options={options} data={data} />
+      {zoomLoaded ? <Line options={options} data={data} /> : "Loading chart!"}
     </div>
   );
 };
