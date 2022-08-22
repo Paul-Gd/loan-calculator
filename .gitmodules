@@ -2,3 +2,7 @@
 	path = historical-data
 	url = git@github.com:Paul-Gd/loan-calculator.git
 	branch = historical-data
+[submodule "github-pages"]
+	path = github-pages
+	url = git@github.com:Paul-Gd/loan-calculator.git
+	branch = github-pages
