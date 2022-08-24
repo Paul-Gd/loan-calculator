@@ -2,8 +2,8 @@ name: Build github pages
 on:
   push: # Trigger a new deploy when master branch or the historical-data branch is updated
     branches:
-      - master
-      - historical-data
+      - "master"
+      - "historical-data"
   workflow_dispatch:
 jobs:
   Build-Github-Pages:
