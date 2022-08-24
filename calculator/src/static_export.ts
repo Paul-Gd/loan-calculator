@@ -4,5 +4,5 @@ export const render = (req, res) => {
   res.json({ html });
 };
 export const routes = () => {
-  return ["/"];
+  return [`${process.env.PUBLIC_PATH}`];
 };
