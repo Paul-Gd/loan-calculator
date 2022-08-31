@@ -1,5 +1,8 @@
 name: Build github pages
 on:
+  push:
+    branches:    
+      - master
   workflow_dispatch: # Trigger a new deploy either manually or from the historical data updade task
 jobs:
   Build-Github-Pages:
