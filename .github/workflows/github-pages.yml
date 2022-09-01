@@ -43,6 +43,8 @@ jobs:
           git clean -fxd
           echo "Copying build output"
           cp -r ../calculator/build/public/. ./
+          mv -v ./loan-calculator/* ./
+          rm -r ./loan-calculator
           if [ -z "$(git status --porcelain)" ]; then 
             echo "No changes detected. Skip pushing a new commit!"
           else 
