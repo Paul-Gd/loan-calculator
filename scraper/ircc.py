@@ -1,7 +1,7 @@
 import argparse
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 import string
 
 import requests
@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 @dataclass
 class DailyIrccRate:
-    date: datetime
+    date: date
     ircc_rate: float
 
 def scrape_ircc():
@@ -20,7 +20,7 @@ def scrape_ircc():
     soup = BeautifulSoup(response.text, 'html.parser')
     result=[]
     for row in soup.find(id="alldata").find("table").find_all("tr")[1:]:
-        date=datetime.strptime(row.find_all("td")[0].string,"%d.%m.%Y")
+        date=datetime.strptime(row.find_all("td")[0].string,"%d.%m.%Y").date()
         # 
         ircc_rate=float(row.find_all("td")[1].string.replace(",","."))
         result.append(DailyIrccRate(date, ircc_rate))
