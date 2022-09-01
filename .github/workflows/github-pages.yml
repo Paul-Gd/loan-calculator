@@ -38,6 +38,10 @@ jobs:
       - name: Copy to github-pages branch and push changes
         working-directory: ./github-pages
         run: | 
+          echo "Cleaning existing branch!"
+          git rm -rf .
+          git clean -fxd
+          echo "Copying build output"
           cp -r ../calculator/build/public/. ./
           if [ -z "$(git status --porcelain)" ]; then 
             echo "No changes detected. Skip pushing a new commit!"
