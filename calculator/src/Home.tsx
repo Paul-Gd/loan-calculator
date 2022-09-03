@@ -1,15 +1,17 @@
 import React from "react";
 
 import "./Home.css";
-import irccData from "./irccData";
+import { irccDailyData } from "./irccData";
 
-import { LineChart } from "./LineChart";
+import { DailyIrccLineChart } from "./charts/DailyIrccLineChart";
+import { QuarterIrccBarChart } from "./charts/QuarterIrccBarChart";
 
 class Home extends React.Component<{}, {}> {
   public render() {
     return (
       <div className="home-chart">
-        <LineChart irccData={irccData} />
+        <QuarterIrccBarChart />
+        <DailyIrccLineChart />
       </div>
     );
   }

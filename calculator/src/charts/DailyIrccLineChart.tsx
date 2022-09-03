@@ -11,15 +11,11 @@ import {
   Title,
   Tooltip,
   Legend,
-  DateAdapter,
   ChartOptions,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
-import { IrccEntry } from "./types";
-
-export interface Props {
-  irccData: Array<IrccEntry>;
-}
+import { IrccDailyEntry } from "../types";
+import { irccDailyData } from "../irccData";
 
 export const options: ChartOptions<"line"> = {
   scales: {
@@ -58,6 +54,10 @@ export const options: ChartOptions<"line"> = {
         mode: "x",
       },
     },
+    title: {
+      display: true,
+      text: "Indice IRCC zilnic",
+    },
   },
 };
 
@@ -72,7 +72,7 @@ ChartJS.register(
   Legend
 );
 
-export const LineChart = (props: Props) => {
+export const DailyIrccLineChart = () => {
   const [zoomLoaded, setZoomLoaded] = useState(false);
   useEffect(() => {
     if (process.env.BUILD_TARGET === "client") {
@@ -84,13 +84,13 @@ export const LineChart = (props: Props) => {
       });
     }
   }, [setZoomLoaded]);
-  const labels = props.irccData.map((p) => p.date);
+  const labels = irccDailyData.map((p) => p.date);
   const data = {
     labels,
     datasets: [
       {
         label: "Ircc zilinc",
-        data: props.irccData.map((p) => p.rate),
+        data: irccDailyData.map((p) => p.rate),
         borderColor: "rgb(53, 162, 235)",
         backgroundColor: "rgba(53, 162, 235, 0.5)",
       },
