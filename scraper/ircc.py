@@ -17,7 +17,7 @@ class DailyIrccRate:
 
 def scrape_ircc():
     response = requests.get(
-        "https://www.bnr.ro/Indicele-de-referin%C8%9Ba-pentru-creditele-consumatorilor--19492-Mobile.aspx"
+        "https://www.bnro.ro/Indicele-de-referin%C8%9Ba-pentru-creditele-consumatorilor--19492-Mobile.aspx"
     )
     if response.status_code != 200:
         raise Exception(
