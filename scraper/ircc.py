@@ -17,19 +17,118 @@ class DailyIrccRate:
 
 
 def scrape_ircc():
-    response = requests.get(
-        "https://www.bnr.ro/Indicele-de-referin%C8%9Ba-pentru-creditele-consumatorilor--19492-Mobile.aspx"
+    session = requests.Session()
+    
+    # First, make a request to the main page to establish session cookies
+    main_page_headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br, zstd',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+    }
+    
+    # Get the main page first to establish session
+    main_response = session.get(
+        "https://www.bnr.ro/1974-indicele-de-referinta-pentru-creditele-consumatorilor",
+        headers=main_page_headers
     )
-    if response.status_code != 200:
+    
+    if main_response.status_code != 200:
+        raise Exception(
+            "Failed to load main page",
+            {"status_code": main_response.status_code, "text": main_response.text},
+        )
+    
+    logging.info("Main page loaded successfully, session cookies established")
+    
+    # Parse the main page to extract the block ID dynamically
+    main_soup = BeautifulSoup(main_response.text, "html.parser")
+    block_wrappers = main_soup.find_all("div", class_="block-wrapper")
+    
+    # Prepare AJAX headers for testing blocks
+    ajax_headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0',
+        'Accept': 'text/html, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br, zstd',
+        'Referer': 'https://www.bnr.ro/1974-indicele-de-referinta-pentru-creditele-consumatorilor',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Origin': 'https://www.bnr.ro',
+        'Connection': 'keep-alive',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-origin',
+    }
+    
+    # Find the block that contains "Indicele de referință zilnic"
+    block_id = None
+    for wrapper in block_wrappers:
+        wrapper_id = wrapper.get("id")
+        if wrapper_id:
+            logging.info("Testing block wrapper with ID: %s", wrapper_id)
+            
+            # Test this block to see if it contains the daily IRCC section
+            test_post_data = {
+                'bid': wrapper_id,
+                'currentSlug': '1974-indicele-de-referinta-pentru-creditele-consumatorilor',
+                'cat_id': ''
+            }
+            
+            try:
+                test_response = session.post(
+                    "https://www.bnr.ro/blocks",
+                    headers=ajax_headers,
+                    data=test_post_data
+                )
+                
+                if test_response.status_code == 200:
+                    content = test_response.text
+                    # Look for the specific section title "Indicele de referință zilnic"
+                    if "Indicele de referință zilnic" in content or "Indicele de referinta zilnic" in content:
+                        block_id = wrapper_id
+                        logging.info("Found block containing 'Indicele de referință zilnic': %s", block_id)
+                        break
+                    else:
+                        logging.info("Block %s does not contain daily IRCC section", wrapper_id)
+                else:
+                    logging.warning("Block %s returned status %d", wrapper_id, test_response.status_code)
+            except Exception as e:
+                logging.warning("Error testing block %s: %s", wrapper_id, e)
+    
+    if not block_id:
+        # Fallback to hardcoded value if we can't find it dynamically
+        block_id = "14114"
+        logging.warning("Could not find block with 'Indicele de referință zilnic', using fallback: %s", block_id)
+    
+    # Now make the AJAX request to get the final block content
+    post_data = {
+        'bid': block_id,
+        'currentSlug': '1974-indicele-de-referinta-pentru-creditele-consumatorilor',
+        'cat_id': ''
+    }
+    
+    ajax_response = session.post(
+        "https://www.bnr.ro/blocks",
+        headers=ajax_headers,
+        data=post_data
+    )
+    
+    if ajax_response.status_code != 200:
         raise Exception(
             "Failed to load block content",
-            {"status_code": response.status_code, "text": response.text},
+            {"status_code": ajax_response.status_code, "text": ajax_response.text},
         )
     
     logging.info("Block content loaded successfully")
     
-    # Parse the response
-    soup = BeautifulSoup(response.text, "html.parser")
+    # Parse the AJAX response
+    soup = BeautifulSoup(ajax_response.text, "html.parser")
     result = []
     
 
